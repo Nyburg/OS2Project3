@@ -98,8 +98,14 @@ void *myalloc(int size)
  */
 void myfree(void *p)
 {
-    // TODO
-    (void)p;  // silence unused variable warnings
+    struct block *block_ptr;
+
+    if (p == NULL) {
+        return;
+    }
+
+    block_ptr = (struct block *)((char *)p - PADDED_SIZEOF(struct block));
+    block_ptr->in_use = 0;
 }
 
 // ---------------------------------------------------------
