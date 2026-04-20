@@ -38,7 +38,9 @@ static struct block *head = NULL;
 void *myalloc(int size)
 {
     struct block *curr;
+    struct block *new_block;
     int needed_size;
+    int remaining_size;
 
     if (size <= 0) {
         return NULL;
@@ -63,7 +65,22 @@ void *myalloc(int size)
     curr = head;
     while (curr != NULL) {
         if (curr->in_use == 0 && curr->size >= needed_size) {
-            curr->in_use = 1;
+
+            if (curr->size >= needed_size + PADDED_SIZEOF(struct block) + ALIGNMENT) {
+                remaining_size = curr->size - needed_size - PADDED_SIZEOF(struct block);
+
+                new_block = PTR_OFFSET(curr, PADDED_SIZEOF(struct block) + needed_size);
+                new_block->size = remaining_size;
+                new_block->in_use = 0;
+                new_block->next = curr->next;
+
+                curr->size = needed_size;
+                curr->in_use = 1;
+                curr->next = new_block;
+            } else {
+                curr->in_use = 1;
+            }
+
             return PTR_OFFSET(curr, PADDED_SIZEOF(struct block));
         }
 
