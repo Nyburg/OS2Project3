@@ -99,6 +99,7 @@ void *myalloc(int size)
 void myfree(void *p)
 {
     struct block *block_ptr;
+    struct block *curr;
 
     if (p == NULL) {
         return;
@@ -106,6 +107,16 @@ void myfree(void *p)
 
     block_ptr = (struct block *)((char *)p - PADDED_SIZEOF(struct block));
     block_ptr->in_use = 0;
+
+    curr = head;
+    while (curr != NULL && curr->next != NULL) {
+        if (curr->in_use == 0 && curr->next->in_use == 0) {
+            curr->size = curr->size + PADDED_SIZEOF(struct block) + curr->next->size;
+            curr->next = curr->next->next;
+        } else {
+            curr = curr->next;
+        }
+    }
 }
 
 // ---------------------------------------------------------
